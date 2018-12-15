@@ -1,0 +1,1 @@
+from chainerpruner.serializers.npz import load_npz

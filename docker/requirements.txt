@@ -1,0 +1,23 @@
+Pillow
+opencv-python
+
+# documentation
+sphinx>=1.8.0
+m2r
+sphinx_rtd_theme
+
+# unittest, static analysis
+pytest
+pytest-cov
+coverage
+autopep8
+
+# data analysis
+jupyterlab
+matplotlib
+
+Cython
+chainercv
+
+tensorboardX
+pandas

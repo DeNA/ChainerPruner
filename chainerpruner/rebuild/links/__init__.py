@@ -1,0 +1,1 @@
+from chainerpruner.rebuild.links.rebuildlink import RebuildLink

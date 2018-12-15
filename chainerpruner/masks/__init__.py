@@ -1,0 +1,1 @@
+from chainerpruner.masks.normmask import NormMask
