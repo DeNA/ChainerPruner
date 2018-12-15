@@ -1,7 +1,7 @@
 # ChainerPruner
 
-[Docs](https://pages.github.com/DeNA/ChainerPruner/)
-| [Install Guide](https://pages.github.com/DeNA/ChainerPruner/install.html)
+[Docs](https://dena.github.io/ChainerPruner/)
+| [Install Guide](https://dena.github.io/ChainerPruner/install.html)
 
 ChainerPruner: Channel Pruning framework for Chainer
 
