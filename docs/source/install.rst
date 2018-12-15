@@ -21,7 +21,7 @@ Using pip
 
 Use pip to install ChainerPruner::
 
-  $ pip install chainerpruner
+  $ pip install git+https://github.com/DeNA/ChainerPruner
 
 From GitHub
 ~~~~~~~~~~~~~

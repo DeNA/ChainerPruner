@@ -8,7 +8,7 @@ ChainerPruner: Channel Pruning framework for Chainer
 ## Installation
 
 ```bash
-$ pip install chainerpruner
+$ pip install git+https://github.com/DeNA/ChainerPruner
 ```
 
 ## LICENSE
