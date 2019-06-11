@@ -8,7 +8,6 @@ cache:
 
 install:
   - pip install pytest pytest-cov coverage chainer chainercv
-  - pip --no-cache-dir install -I .
 
 script:
   - pytest tests --vv
