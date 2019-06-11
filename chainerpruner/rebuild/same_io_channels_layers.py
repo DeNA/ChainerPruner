@@ -2,14 +2,47 @@
 # Licensed under The MIT License [see LICENSE for details]
 
 from chainer import links as L
+from chainer.functions.connection.convolution_2d import Convolution2DFunction
+from chainer.functions.connection.linear import LinearFunction
 
 
-# for example
-# conv1(in:3, out:32)-bn1(in/out: 32)-conv2(in: 32, out:64)
-# conv1 pruned (32->8) then bn1 and conv2
-# conv1(in:3, out:16)-bn1(in/out: 16)-conv2(in: 16, out:64)
-# TODO(tkato) conv2d(group=out_channels)
-same_io_channels_layers = [
+connected_io_channels_layers = [
     L.DepthwiseConvolution2D,
     L.BatchNormalization,
 ]
+
+disconnected_io_channels_layers = [
+    Convolution2DFunction,
+    LinearFunction,
+]
+
+def is_grouped_convolution(node):
+    if node.type == L.Convolution2D and node.link.groups > 1:
+        return True
+    elif node.type == Convolution2DFunction and node.function.groups > 1:
+        return True
+    else:
+        return False
+
+def is_connected_io_channels(node):
+    """入出力のチャネル数が連動している層の場合Trueを返す
+
+    Args:
+        node:
+
+    Returns:
+
+    """
+    # TODO(tkat0) ここもカスタマイズ可能に
+    if is_grouped_convolution(node):
+        return True
+    elif node.type in connected_io_channels_layers:
+        return True
+    elif node.type in disconnected_io_channels_layers:
+        # 主にFunctionは異なるin/outの層は少ないのでblacklist式にしている
+        return False
+    elif node.function:
+        # 全てのFunctionはin/outチャネルが一致ていると仮定
+        return True
+    else:
+        return False
