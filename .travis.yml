@@ -9,7 +9,7 @@ cache:
 install:
   - pip install -qU pip setuptools
   - pip install -q pytest pytest-cov coverage
-  - pip install -q chainer
+  - pip install -q chainer networkx
   - pip install -q chainercv
   - pip install -q -e .
 
