@@ -7,15 +7,23 @@ import chainer
 
 
 class Node():
-    def __init__(self, id_, type_, args, out, name=None):
+    """計算グラフのノード。channel pruningに必要な情報を抽出している。
+
+    入出力のテンソルのサイズや、ノードの型、chainerのLinkやFuntionのオブジェクト自体もアクセスできる
+    """
+
+    def __init__(self, id_, type_, args, out, link=None, function=None):
         """
 
+        nextは、List[Node or List[Node]]
+
         Args:
-            name:
             id_:
             type_:
             args:
             out:
+            link:
+            function:
         """
 
         if not all([isinstance(a, chainer.variable.VariableNode) for a in args]):
@@ -30,14 +38,23 @@ class Node():
         self.input_shape = [a.shape if hasattr(a, 'shape') else None for a in args]
         self.output_id = [id(o) for o in out if o is not None]
         self.output_shape = [o.shape if hasattr(o, 'shape') else None for o in out]
-        self.next = []
+        self.link = link
+        self.function = function
 
     def __repr__(self):
-        return 'Node([{}] name=\'{}\', type={}, input={},' \
-               ' output={}, input_shape={}, output_shape={}, next={})'.format(self.id, self.name,
-                                                                     self.type.__name__,
-                                                                     self.input_id,
-                                                                     self.output_id,
-                                                                     self.input_shape,
-                                                                     self.output_shape,
-                                                                     self.next)
+        if self.link:
+            node_class = 'link'
+        elif self.function:
+            node_class = 'function'
+        else:
+            node_class = 'unknown'
+        return 'Node(name=\'{}\', id={}, type={}, input={},' \
+               ' output={}, input_shape={}, output_shape={}, class={})'.format(
+            self.name,
+            self.id,
+            self.type.__name__,
+            self.input_id,
+            self.output_id,
+            self.input_shape,
+            self.output_shape,
+            node_class)

@@ -24,7 +24,8 @@ class TraceFunctionHook(chainer.FunctionHook):
         node = Node(id_=id(function),
                     type_=type(function),
                     args=args,
-                    out=out)
+                    out=out,
+                    function=function)
 
         self.graph.append(node)
 
@@ -49,6 +50,7 @@ class TraceLinkHook(chainer.LinkHook):
         node = Node(id_=id(link),
                     type_=type(link),
                     args=args,
-                    out=out)
+                    out=out,
+                    link=link)
 
         self.graph.append(node)
