@@ -1,0 +1,54 @@
+version: "2.3"
+services:
+  gpu: &gpu
+    runtime: nvidia
+    build:
+      context: ./docker
+      dockerfile: Dockerfile
+    image: dena/chainerpruner:latest
+    shm_size: 8G
+    tty: true
+    volumes:
+      - ~/.chainer:/root/.chainer
+      - ${PWD}:/work
+    working_dir: /work
+  gpu-dev: &gpu-dev
+    runtime: nvidia
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.dev
+    shm_size: 8G
+    tty: true
+    volumes:
+      - ~/.chainer:/root/.chainer
+      - ${PWD}:/work
+    working_dir: /work
+  cpu-dev: &cpu-dev
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile.dev
+    tty: true
+    volumes:
+      - ~/.chainer:/root/.chainer
+      - ${PWD}:/work
+    working_dir: /work
+  jupyter:
+    <<: *gpu-dev
+    ports:
+      - 40000:40000
+    command: jupyter lab --allow-root --ip 0.0.0.0 --port 40000
+  test:
+    <<: *cpu-dev
+    command:
+      bash -c "
+      pip3 install . &&
+      pytest -v --cov=chainerpruner --cov-report=html tests
+      "
+  doc:
+    <<: *cpu-dev
+    working_dir: /work/docs
+    command:
+      bash -c "
+      pip3 install .. &&
+      make html
+      "
