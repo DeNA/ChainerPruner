@@ -1,5 +1,7 @@
 # ChainerPruner
 
+[![Build Status](https://travis-ci.org/DeNA/ChainerPruner.svg?branch=master)](https://travis-ci.org/DeNA/ChainerPruner)
+
 ChainerPruner: Channel Pruning framework for [Chainer](https://github.com/chainer/chainer)
 
 ## Installation
