@@ -9,9 +9,9 @@ ChainerPruner: Channel Pruning framework for [Chainer](https://github.com/chaine
 - requirements:
     - Python >= 3.6
     - chainer >= 5.1.0
+    - chainercv
     - networkx
     - (optional) scipy
-
 
 ```bash
 $ pip install git+https://github.com/DeNA/ChainerPruner
