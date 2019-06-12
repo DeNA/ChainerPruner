@@ -1,14 +1,14 @@
 language: python
 
 python:
-  - 3.6
+  - 3.5
 
 cache:
   - pip
 
 install:
   - pip install -qU pip setuptools
-  - pip install -q pytest==3.5 pytest-cov coverage
+  - pip install -q pytest==3.6 pytest-cov coverage
   - pip install -q chainer networkx
   - pip install -q chainercv
   - pip install -q -e .
