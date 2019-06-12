@@ -63,7 +63,9 @@ def rebuild(model, graph, target_layers, mapping=None):
         rebuild_link_class = mapping.get(type(target_link),
                                          None)  # type: chainerpruner.rebuild.links.rebuildlink.RebuildLink
         if rebuild_link_class is None:
-            raise NotImplementedError
+            raise NotImplementedError('RebuildLink is not implemented.'
+                                      'This layer can not be pruning.'
+                                      '{}: {}'.format(name, target_link))
         rebuild_link = rebuild_link_class()
         rebuild_link.node = nodes[name]
         mask = rebuild_link.apply_active_rebuild(target_link)
