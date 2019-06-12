@@ -2,6 +2,7 @@ language: python
 
 python:
   - 3.5
+  - 3.6
 
 cache:
   - pip
@@ -9,9 +10,9 @@ cache:
 install:
   - pip install -qU pip setuptools
   - pip install -q pytest==3.6 pytest-cov coverage
-  - pip install -q chainer networkx
+  - pip install -q chainer networkx chainer_computational_cost
   - pip install -q chainercv
   - pip install -q -e .
 
 script:
-  - pytest tests
+  - pytest -vv tests
