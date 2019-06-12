@@ -42,6 +42,7 @@ class AllSupportedLayersNet(PickableSequentialChain):
             self.bn2_1 = chainer.links.BatchNormalization(10)
             self.bn2_2 = chainer.links.BatchNormalization(10)
             self.conv3 = chainer.links.DepthwiseConvolution2D(10, 1, 3)
+            self.conv4 = chainer.links.DilatedConvolution2D(10, 1, 3, dilate=2)
             self.fc1 = chainer.links.Linear(None, n_class)
             self.fc2 = chainer.links.Linear(None, n_class)
 
@@ -53,6 +54,7 @@ class AllSupportedLayersNet(PickableSequentialChain):
         h2 = self.bn2_2(h_conv2)
         h = h1 + h2
         h = self.conv3(h)
+        h = self.conv4(h)
         h1 = self.fc1(h)
         h = F.average_pooling_2d(h, ksize=h.shape[2:])  # GAP
         h2 = self.fc2(h)
