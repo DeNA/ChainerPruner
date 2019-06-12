@@ -1,15 +1,18 @@
-sudo: required
-services:
-  - docker
+language: python
 
-env:
-  - DOCKER_COMPOSE_VERSION=1.4.2
+python:
+  - 3.5
+  - 3.6
 
-before_install:
-  - curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` > docker-compose
-  - chmod +x docker-compose
-  - sudo mv docker-compose /usr/local/bin
-  - docker-compose build
+cache:
+  - pip
+
+install:
+  - pip install -qU pip setuptools
+  - pip install -q pytest==3.6 pytest-cov coverage
+  - pip install -q chainer networkx chainer_computational_cost
+  - pip install -q chainercv
+  - pip install -q -e .
 
 script:
-  - docker-compose run test
+  - pytest -vv tests
