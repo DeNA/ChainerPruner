@@ -44,7 +44,6 @@ class SimpleNet(chainer.Chain):
         return h
 
 
-
 def test_pruner():
     model = SimpleNet()
     x = np.ones((1, 1, 9, 9), dtype=np.float32)
@@ -84,6 +83,100 @@ def test_allnet():
 
     percent = 0.8
     target_layers = AllSupportedLayersNet.target_layers
+
+    graph = Graph(model, x)
+    mask = NormMask(model, graph, target_layers, percent=percent)
+    pruner = Pruner(model, x, target_layers, mask)
+    pruner.apply_mask()
+    info = pruner.apply_rebuild()
+    pruner.reinitialize()
+
+    model(x)
+
+
+def test_seq_out():
+
+    class A(chainer.Chain):
+        """N-output"""
+
+        target_layers = [
+            '/conv1',
+            '/conv2',
+        ]
+
+        def __init__(self, n_class=10):
+            super(A, self).__init__()
+            with self.init_scope():
+                self.conv1 = chainer.links.Convolution2D(None, 10, 3)
+                self.bn1 = chainer.links.BatchNormalization(10)
+                self.conv2 = chainer.links.Convolution2D(10, 3)
+                self.bn2 = chainer.links.BatchNormalization(10)
+                self.fc1 = chainer.links.Linear(None, n_class)
+                self.fc2 = chainer.links.Linear(None, n_class)
+
+        def __call__(self, x):
+            h = self.conv1(x)
+            h = self.bn1(h)
+            h = self.conv2(h)
+            h = self.bn2(h)
+            h1 = self.fc1(h)
+            h2 = self.fc2(h)
+            return h1, h2
+
+    x = np.zeros((1, 1, 32, 32), dtype=np.float32)
+    model = A()
+
+    model(x)
+
+    percent = 0.8
+    target_layers = A.target_layers
+
+    graph = Graph(model, x)
+    mask = NormMask(model, graph, target_layers, percent=percent)
+    pruner = Pruner(model, x, target_layers, mask)
+    pruner.apply_mask()
+    info = pruner.apply_rebuild()
+    pruner.reinitialize()
+
+    model(x)
+
+
+def test_map_out():
+
+    class A(chainer.Chain):
+        """N-output"""
+
+        target_layers = [
+            '/conv1',
+            '/conv2',
+        ]
+
+        def __init__(self, n_class=10):
+            super(A, self).__init__()
+            with self.init_scope():
+                self.conv1 = chainer.links.Convolution2D(None, 10, 3)
+                self.bn1 = chainer.links.BatchNormalization(10)
+                self.conv2 = chainer.links.Convolution2D(10, 3)
+                self.bn2 = chainer.links.BatchNormalization(10)
+                self.fc1 = chainer.links.Linear(None, n_class)
+                self.fc2 = chainer.links.Linear(None, n_class)
+
+        def __call__(self, x):
+            h = self.conv1(x)
+            h = self.bn1(h)
+            h = self.conv2(h)
+            h = self.bn2(h)
+            h1 = self.fc1(h)
+            h2 = self.fc2(h)
+            return {'alice': h1, 'bob': h2}
+
+    x = np.zeros((1, 1, 32, 32), dtype=np.float32)
+    model = A()
+
+    model(x)
+
+    percent = 0.8
+    target_layers = A.target_layers
 
     graph = Graph(model, x)
     mask = NormMask(model, graph, target_layers, percent=percent)
