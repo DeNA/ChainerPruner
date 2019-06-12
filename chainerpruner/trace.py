@@ -44,7 +44,9 @@ class TraceLinkHook(chainer.LinkHook):
         if not isinstance(out, Sequence):
             out = [out]
 
-        args = [a.node for a in args]
+        # TODO(tkat0) SSDのMultiboxなど、aがlistになる層もあるみたい
+        #   どうせpruningしない層なので無視し、怒られたら直します
+        args = [a.node for a in args if hasattr(a, 'node')]
         out = [o.node for o in out]
 
         node = Node(id_=id(link),

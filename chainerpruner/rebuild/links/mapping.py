@@ -11,6 +11,7 @@ import chainercv
 
 mapping = {
     L.Convolution2D: RebuildConvolution2D,
+    L.DilatedConvolution2D: RebuildConvolution2D,
     L.DepthwiseConvolution2D: RebuildDepthwiseConvolution2D,
     L.BatchNormalization: RebuildBatchNormalization,
     L.Linear: RebuildLinear,
