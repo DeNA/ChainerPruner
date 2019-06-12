@@ -1,8 +1,7 @@
 # Copyright (c) 2018 DeNA Co., Ltd.
 # Licensed under The MIT License [see LICENSE for details]
 
-from typing import Sequence
-from collections import OrderedDict
+from typing import Sequence, Mapping
 import networkx as nx
 
 import chainer
@@ -33,12 +32,16 @@ class Graph():
         # ここはもっとエレガントになるように変更予定
         with chainer.using_config('train', False), chainer.force_backprop_mode():
             with TraceLinkHook() as link_hook:
-                out = model(*args)
+                outs = model(*args)
+            if isinstance(outs, Mapping):
+                outs = list(outs.values())
+            if not isinstance(outs, Sequence):
+                outs = [outs]
 
             with TraceFunctionHook() as func_hook:
-                # TODO(tkat0) なぜbackward？まとめられないか
-                out.grad = xp.ones_like(out.array)
-                out.backward()
+                for out in outs:
+                    out.grad = xp.ones_like(out.array)
+                    out.backward()
 
         self.links = link_hook.graph  # type: Sequence[Node]
         # get global link name
