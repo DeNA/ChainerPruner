@@ -53,7 +53,6 @@ def calc_pruning_connection(graph: Graph) -> Mapping:
             pruning_connection_info[node.name] = affected_nodes
 
     # この時点ではResBlockやConv2DBNActivのようなUserDefinedLinkも含まれる
-    print(pruning_connection_info)
 
     # for example
     # conv1-bn1-conv2-fc
