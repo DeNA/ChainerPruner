@@ -9,14 +9,16 @@ from chainerpruner.rebuild.links.utils import log_shape
 
 class RebuildLinear(RebuildLink):
 
+    def update_attributes(self, link: L.Linear):
+        link.out_size, link.in_size = link.W.shape
+
     def passive_rebuild(self, linear, mask):
-        # conv-linearだと影響を受ける
 
         self.logger.debug(log_shape(linear.W.array, mask))
 
         input_shape = self.node.input_shape[0]
         if len(input_shape) == 4 and input_shape[1] == len(mask):
-            # prev node is conv: conv-fc
+            # conv-fc
             n_out, n_in = linear.W.shape
             w = linear.W.array.copy().reshape(n_out, *input_shape[1:])
             w = w[:, mask, :, :]

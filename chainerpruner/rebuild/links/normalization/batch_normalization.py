@@ -9,6 +9,10 @@ from chainerpruner.rebuild.links.utils import log_shape
 
 class RebuildBatchNormalization(RebuildLink):
 
+    def update_attributes(self, link):
+        # do nothing
+        return
+
     def _rebuild(self, bn, mask):
         self.logger.debug(log_shape(bn.gamma.array, mask))
         bn.gamma.array = bn.gamma.array[mask].copy()

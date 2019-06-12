@@ -9,6 +9,7 @@ from chainerpruner.rebuild.links.connection.linear import RebuildLinear
 from chainerpruner.rebuild.links.connection.seblock import RebuildSEBlock
 import chainercv
 
+# Channel Pruningに対応するLink
 mapping = {
     L.Convolution2D: RebuildConvolution2D,
     L.DilatedConvolution2D: RebuildConvolution2D,
