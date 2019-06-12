@@ -14,4 +14,4 @@ install:
   - pip install -q -e .
 
 script:
-  - pytest tests --vv
+  - pytest --vv tests
