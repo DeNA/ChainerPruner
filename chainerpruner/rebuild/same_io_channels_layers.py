@@ -5,6 +5,7 @@ from chainer import links as L
 from chainer.functions.connection.convolution_2d import Convolution2DFunction
 from chainer.functions.connection.linear import LinearFunction
 
+# TODO(tkat0) これらの実装はRebuildLink側に統合しても綺麗かもしれない
 
 connected_io_channels_layers = [
     L.DepthwiseConvolution2D,

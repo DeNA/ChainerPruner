@@ -9,9 +9,10 @@ from chainerpruner.rebuild.links.utils import log_shape
 
 class RebuildConvolution2D(RebuildLink):
 
+    def update_attributes(self, conv: L.Convolution2D):
+        conv.out_channels = conv.W.shape[0]
+
     def active_rebuild(self, conv: L.Convolution2D):
-        # mask_model is not None => conv-bnのbnを用いてconvをpruningする例外
-        # ocに関する全kernelの総和が0のチャネルは除外し、それ以外を残す
         mask = conv.W.array.sum(axis=(1, 2, 3)) != 0
         self.logger.debug(log_shape(conv.W.array, mask))
         conv.W.array = conv.W.array[mask].copy()
@@ -19,9 +20,6 @@ class RebuildConvolution2D(RebuildLink):
         if conv.b is not None:
             self.logger.debug(log_shape(conv.b.array, mask))
             conv.b.array = conv.b.array[mask].copy()
-
-        out_channels = conv.W.shape[0]
-        conv.out_channels = out_channels
 
         return mask
 

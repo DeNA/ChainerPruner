@@ -9,6 +9,10 @@ from chainerpruner.rebuild.links.utils import log_shape
 
 class RebuildDepthwiseConvolution2D(RebuildLink):
 
+    def update_attributes(self, conv):
+        # do nothing
+        return
+
     def active_rebuild(self, conv):
         # 通常、depthwise-convはpriningしない。sep-conv(convdw-convpw)の場合、convpwをpruningする
         raise NotImplementedError
@@ -18,9 +22,6 @@ class RebuildDepthwiseConvolution2D(RebuildLink):
         conv.W.array = conv.W.array[:, mask].copy()
         if conv.b is not None:
             conv.b.array = conv.b.array[mask].copy()
-
-        # TODO(tkato) 以下のケア
-        conv.channel_multiplier
 
     def reinitialize(self, link: L.DepthwiseConvolution2D):
         _, in_channels = link.W.shape[:2]
