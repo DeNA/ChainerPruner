@@ -128,3 +128,14 @@ def load_npz(file, obj, path='', strict=True, ignore_names=None, verbose=False):
         d = NpzDeserializer(
             f, path=path, strict=strict, ignore_names=ignore_names)
         d.load(obj)
+
+    # 読み込んだweightに合わせて各linkのattributeをupdateする
+    from chainerpruner.rebuild.links.mapping import mapping
+    for name, link in obj.namedlinks():
+        rebuild_link_class = mapping.get(type(link),
+                                         None)  # type: chainerpruner.rebuild.links.rebuildlink.RebuildLink
+        if not rebuild_link_class:
+            # 非サポートのOpはskip
+            continue
+
+        rebuild_link_class().update_attributes(link)
