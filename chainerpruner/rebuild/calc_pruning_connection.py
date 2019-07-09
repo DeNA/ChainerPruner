@@ -26,6 +26,8 @@ def calc_pruning_connection(graph: Graph) -> Mapping:
 
     pruning_connection_info = OrderedDict()
 
+    assert len(graph.graph.nodes) > 0, "empty graph!"
+
     # 現在のノードのpruningで影響がある後続するlinkノードをすべて取得する
     # TODO(tkat0) linkとfunctionをマージしているため、L.Convolution2DとConvolution2DFunctionのパスが独立し多重辺ができる
     #   そのため、後続のノードの依存をチェックするis_connected_io_channelsがlinkとfunctionそれぞれ対応する必要があり複雑化

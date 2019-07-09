@@ -79,7 +79,7 @@ class NormMask(Mask):
             mask = l1norm(mask)
         elif self.norm == 'l2':
             def l2norm(p):
-                return torch.sqrt(torch.sum(torch.square(p), dim=(1, 2, 3), keepdim=True))
+                return torch.sqrt(torch.sum(p ** 2, dim=(1, 2, 3), keepdim=True))
             mask = l2norm(mask)
         else:
             raise NotImplementedError()

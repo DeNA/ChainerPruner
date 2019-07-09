@@ -20,7 +20,7 @@ import chainer.links as L
 from chainer import training
 from chainer.training import extensions
 
-from chainerpruner.pruning.psfp import ProgressiveSoftFilterPruning
+from chainerpruner.pruning.psfp.chainer import ProgressiveSoftFilterPruningExtension
 from chainerpruner.utils import calc_computational_cost
 
 
@@ -126,9 +126,9 @@ def train_mnist(gpu, batchsize, out, epoch, frequency, plot,
         # Make a specified GPU current
         chainer.backends.cuda.get_device_from_id(gpu).use()
         x.to_gpu()
-    psfp = ProgressiveSoftFilterPruning(model.predictor, x, target_layers, pruning_rate=pruning_rate,
-                                        stop_trigger=(epoch, 'epoch'),
-                                        rebuild=True)
+    psfp = ProgressiveSoftFilterPruningExtension(model.predictor, x, target_layers, pruning_rate=pruning_rate,
+                                                 stop_trigger=(epoch, 'epoch'),
+                                                 rebuild=True)
     trainer.extend(psfp)
 
     if resume:

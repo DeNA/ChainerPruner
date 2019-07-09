@@ -3,10 +3,12 @@
 
 import torch.nn as nn
 
-
+# TODO(tkat0) aggregate functions
 _connected_io_channels_layers = [
     nn.BatchNorm2d,
     nn.ReLU6,
+    nn.ReLU,
+    nn.MaxPool2d,
 ]
 
 

@@ -7,12 +7,10 @@ import numpy as np
 
 try:
     from scipy.optimize import curve_fit
+
     enable_scipy = True
 except:
     enable_scipy = False
-
-import chainer
-from chainer.training import extension
 
 from chainerpruner import Graph
 from chainerpruner.masks import NormMask
@@ -21,14 +19,9 @@ from chainerpruner.rebuild.rebuild import rebuild
 logger = logging.getLogger(__name__)
 
 
-class ProgressiveSoftFilterPruning(extension.Extension):
-
-    name = 'ProgressiveSoftFilterPruning'
-    trigger = (1, 'epoch')
-    priority = chainer.training.PRIORITY_WRITER # TODO(tkato)
-
+class ProgressiveSoftFilterPruning():
     def __init__(self, model, args, target_layers,
-                 pruning_rate, stop_trigger, pruning_rate_decay=1 / 8, rebuild=True):
+                 pruning_rate, stop_trigger, pruning_rate_decay=1 / 8):
         """ Progressive Deep Neural Networks Acceleration via Soft Filter Pruning
 
         https://arxiv.org/abs/1808.07471
@@ -40,30 +33,26 @@ class ProgressiveSoftFilterPruning(extension.Extension):
             pruning_rate_decay (float): pruning_rateのprogressiveな変化率を調整するパラメータ。論文では1/8がデフォルト
                 pruning_rateの3/4のsparsityを学習のmax_iteration/epochの何%の位置に指定するか
             trigger (tuple): weightをzeroにする頻度 (500, 'iteration') のように指定する。論文では(1, 'epoch')がデフォルト
-            stop_trigger (tuple): 学習の総iteration/epochを指定。 triggerとstop_triggerの単位はiterationかepochで合わせること
+            stop_trigger (int): 学習の総iteration/epochを指定
         """
 
         if not enable_scipy:
-            raise ImportError() # TODO(tkato)
+            raise ImportError("please install scipy")
 
         self.model = model
         self.target_layers = target_layers
         self.pruning_rate = pruning_rate
         self.pruning_rate_decay = pruning_rate_decay
-        self.trigger_type = self.trigger[1]
         self.stop_trigger = stop_trigger
-        self.rebuild = rebuild
 
         self.graph = Graph(model, args)
 
         initial_pruning_rate = 0.
         self.mask = NormMask(model, self.graph, target_layers, percent=initial_pruning_rate, norm='l2')
 
-        assert self.trigger_type == stop_trigger[1], 'extensions trigger == stop trigger'
-
         self._pruning_rate_fn = self._init_pruning_rate_fn(pruning_rate,
                                                            pruning_rate_decay,
-                                                           stop_trigger[0])
+                                                           stop_trigger)
 
     def _init_pruning_rate_fn(self, pruning_rate, pruning_rate_decay, max_step):
         """progressiveにpruning ratioを上昇させる関数を構築
@@ -90,24 +79,18 @@ class ProgressiveSoftFilterPruning(extension.Extension):
         p0 = np.array([0, 0, 0], dtype=np.float32)
         popt, _ = curve_fit(f, xdata, ydata, p0=p0)
 
-        print('({}, sparsity[%]): {}'.format(self.trigger_type, [(x, y) for x, y in zip(xdata, ydata)]))
+        logger.info('(sparsity[%]): {}'.format([(x, y) for x, y in zip(xdata, ydata)]))
 
         return lambda x: f(x, *popt) * 0.01  # 10% -> 0.1
 
-    def __call__(self, trainer: chainer.training.Trainer):
-
-        updater = trainer.updater
-        epoch = updater.epoch
-        iteration = updater.iteration
-        step = iteration if self.trigger_type == 'iteration' else epoch
-
+    def __call__(self, step):
         # update pruning_rate
         for key in self.mask.percent.keys():
             self.mask.percent[key] = self._pruning_rate_fn(step)
 
         info = self.mask()
+        logger.info(info)
 
-    def finalize(self):
-        if self.rebuild:
-            info = rebuild(self.model, self.graph, self.target_layers)
-            logger.debug(info)
+    def rebuild(self):
+        info = rebuild(self.model, self.graph, self.target_layers)
+        logger.debug(info)
