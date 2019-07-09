@@ -130,7 +130,7 @@ def load_npz(file, obj, path='', strict=True, ignore_names=None, verbose=False):
         d.load(obj)
 
     # 読み込んだweightに合わせて各linkのattributeをupdateする
-    from chainerpruner.rebuild.links.mapping import mapping
+    from chainerpruner.rebuild.chainer.mapping import mapping
     for name, link in obj.namedlinks():
         rebuild_link_class = mapping.get(type(link),
                                          None)  # type: chainerpruner.rebuild.links.rebuildlink.RebuildLink

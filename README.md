@@ -1,6 +1,7 @@
 # ChainerPruner
 
 [![Build Status](https://travis-ci.org/DeNA/ChainerPruner.svg?branch=master)](https://travis-ci.org/DeNA/ChainerPruner)
+![License](https://img.shields.io/badge/license-MIT-brightgreen.svg)
 
 ChainerPruner: Channel Pruning framework for [Chainer](https://github.com/chainer/chainer)
 

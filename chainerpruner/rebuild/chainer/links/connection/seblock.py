@@ -3,7 +3,7 @@
 
 from chainer import links as L
 
-from chainerpruner.rebuild.links.rebuildlink import RebuildLink
+from chainerpruner.rebuild.rebuildlink import RebuildLink
 from chainerpruner.rebuild.rebuild import passive_pruned_add
 
 

@@ -3,8 +3,6 @@
 
 from typing import Sequence, Union, Tuple
 
-import chainer
-
 from chainerpruner.mask import Mask
 from chainerpruner.rebuild.rebuild import rebuild
 from chainerpruner.rebuild import reinitialize_model
@@ -17,7 +15,7 @@ class Pruner():
     """High-level Pruning API
     """
 
-    def __init__(self, model: chainer.Chain, args: Union[NdArray, Tuple[NdArray]],
+    def __init__(self, model, args: Union[NdArray, Tuple[NdArray]],
                  target_layers: Sequence, mask: Mask, mapping=None):
         self.model = model
         self.target_layers = target_layers

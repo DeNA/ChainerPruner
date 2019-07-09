@@ -42,7 +42,7 @@ services:
     command:
       bash -c "
       pip3 install . &&
-      pytest -v --cov=chainerpruner --cov-report=html tests
+      pytest -v --cov=chainerpruner --cov-report=html --color=auto -s --basetemp tests_results tests
       "
   doc:
     <<: *cpu-dev

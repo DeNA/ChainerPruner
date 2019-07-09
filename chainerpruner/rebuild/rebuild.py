@@ -4,6 +4,8 @@
 import logging
 
 from chainerpruner.rebuild.calc_pruning_connection import calc_pruning_connection
+import chainerpruner
+from chainerpruner.rebuild.mapping import get_mapping
 
 logger = logging.getLogger(__name__)
 
@@ -35,8 +37,7 @@ def rebuild(model, graph, target_layers, mapping=None):
     passive_pruned_clear()
 
     if not mapping:
-        from chainerpruner.rebuild.links.mapping import mapping as m
-        mapping = m
+        mapping = get_mapping(model)
 
     if len(target_layers) == 0:
         raise ValueError('invalid rebuild_info')
@@ -46,7 +47,7 @@ def rebuild(model, graph, target_layers, mapping=None):
         raise ValueError('pruinng_connection_info parse error')
     logger.debug('pruning_connection_info', pruning_connection_info)
 
-    model_dict = {name: link for name, link in model.namedlinks()}
+    model_dict = {name: link for name, link in chainerpruner.utils.named_modules(model)}
     info = []
 
     nodes = {node.name: node for node in graph.graph.nodes}
@@ -61,7 +62,7 @@ def rebuild(model, graph, target_layers, mapping=None):
         # rebuild pruning target node
         target_link = model_dict[name]
         rebuild_link_class = mapping.get(type(target_link),
-                                         None)  # type: chainerpruner.rebuild.links.rebuildlink.RebuildLink
+                                         None)  # type: chainerpruner.rebuild.RebuildLink
         if rebuild_link_class is None:
             raise NotImplementedError('RebuildLink is not implemented.'
                                       'This layer can not be pruning.'
@@ -99,7 +100,7 @@ def rebuild(model, graph, target_layers, mapping=None):
 
             rebuild_link = rebuild_link_class()
             rebuild_link.node = nodes[post_name]
-            rebuild_link.apply_passive_rebuild(target_link, mask.copy())
+            rebuild_link.apply_passive_rebuild(target_link, mask)
             pruned.add(post_name)
 
         count += 1

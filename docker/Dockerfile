@@ -11,4 +11,6 @@ RUN pip3 install \
     scipy \
     chainer_computational_cost
 
+RUN pip3 install torch torchvision
+
 RUN pip3 install git+https://github.com/DeNA/ChainerPruner

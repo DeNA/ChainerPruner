@@ -3,8 +3,8 @@
 
 from chainer import links as L
 
-from chainerpruner.rebuild.links.rebuildlink import RebuildLink
-from chainerpruner.rebuild.links.utils import log_shape
+from chainerpruner.rebuild.rebuildlink import RebuildLink
+from chainerpruner.rebuild.utils import log_shape
 
 
 class RebuildDepthwiseConvolution2D(RebuildLink):

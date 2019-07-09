@@ -5,11 +5,11 @@ from typing import Sequence, Mapping
 import networkx as nx
 
 import chainer
-from chainerpruner.trace import TraceLinkHook, TraceFunctionHook
-from chainerpruner.node import Node
+from chainerpruner.graph.chainer.trace import TraceLinkHook, TraceFunctionHook
+from chainerpruner.graph.node import Node
 
 
-class Graph():
+class ChainerGraph():
     """Computation Graph Parser
 
     Chainerの計算グラフはLinkとFunctionから構成される

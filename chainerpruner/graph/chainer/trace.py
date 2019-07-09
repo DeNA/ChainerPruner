@@ -5,7 +5,7 @@ from typing import Sequence
 import weakref
 import chainer
 
-from chainerpruner.node import Node
+from chainerpruner.graph.node import Node
 
 
 class TraceFunctionHook(chainer.FunctionHook):

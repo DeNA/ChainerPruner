@@ -1,1 +1,2 @@
 from chainerpruner.utils.cost import calc_computational_cost
+from chainerpruner.utils.framework import is_chainer_model, named_modules, is_pytorch_model

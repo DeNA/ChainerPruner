@@ -4,23 +4,27 @@
 import logging
 
 import numpy as np
-import chainer
 
 import chainerpruner
+from chainerpruner import utils
+from chainerpruner.rebuild.mapping import get_mapping
 
 logger = logging.getLogger(__name__)
 
 
-def reinitialize_model(model: chainer.Chain, mapping=None):
+def reinitialize_model(model, mapping=None):
 
     if model.xp is not np:
         raise TypeError('please model.to_cpu()')
 
     if not mapping:
-        from chainerpruner.rebuild.links.mapping import mapping as m
-        mapping = m
+        mapping = get_mapping(model)
 
-    for name, link in model.namedlinks(skipself=True):
+    options = dict()
+    if utils.is_chainer_model(model):
+        options['skipself'] = True
+
+    for name, link in utils.named_modules(model, **options):
         logger.debug('name: {}'.format(name))
-        rebuild_link = mapping[type(link)]()  # type: chainerpruner.rebuild.links.rebuildlink.RebuildLink
+        rebuild_link = mapping[type(link)]()  # type: chainerpruner.rebuild.RebuildLink
         rebuild_link.apply_reinitialize(link)

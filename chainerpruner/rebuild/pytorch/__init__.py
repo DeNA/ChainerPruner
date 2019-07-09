@@ -1,0 +1,1 @@
+from chainerpruner.rebuild.pytorch.mapping import mapping

@@ -7,12 +7,12 @@ from chainer.functions.connection.linear import LinearFunction
 
 # TODO(tkat0) これらの実装はRebuildLink側に統合しても綺麗かもしれない
 
-connected_io_channels_layers = [
+_connected_io_channels_layers = [
     L.DepthwiseConvolution2D,
     L.BatchNormalization,
 ]
 
-disconnected_io_channels_layers = [
+_disconnected_io_channels_layers = [
     Convolution2DFunction,
     LinearFunction,
 ]
@@ -37,9 +37,9 @@ def is_connected_io_channels(node):
     # TODO(tkat0) ここもカスタマイズ可能に
     if is_grouped_convolution(node):
         return True
-    elif node.type in connected_io_channels_layers:
+    elif node.type in _connected_io_channels_layers:
         return True
-    elif node.type in disconnected_io_channels_layers:
+    elif node.type in _disconnected_io_channels_layers:
         # 主にFunctionは異なるin/outの層は少ないのでblacklist式にしている
         return False
     elif node.function:

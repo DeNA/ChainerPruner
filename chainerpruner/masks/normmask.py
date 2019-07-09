@@ -4,10 +4,7 @@
 from collections import defaultdict
 from typing import Optional, Union, Mapping
 
-from chainer import backend
-
 from chainerpruner.mask import Mask
-from chainerpruner.rebuild import calc_pruning_connection
 
 
 def set_all_layers(target_layers, threshold_or_percent, default):
@@ -53,6 +50,13 @@ class NormMask(Mask):
             raise AttributeError()
 
     def get_filter_norm(self, mask):
+        if self.is_chainer():
+            return self._get_filter_norm_chainer(mask)
+        else:
+            return self._get_filter_norm_pytorch(mask)
+
+    def _get_filter_norm_chainer(self, mask):
+        from chainer import backend
         xp = backend.get_array_module(mask)
 
         if self.norm == 'l1':
@@ -67,7 +71,37 @@ class NormMask(Mask):
             raise NotImplementedError()
         return mask
 
+    def _get_filter_norm_pytorch(self, mask):
+        import torch
+        if self.norm == 'l1':
+            def l1norm(p):
+                return torch.sum(p, dim=(1, 2, 3), keepdim=True)
+            mask = l1norm(mask)
+        elif self.norm == 'l2':
+            def l2norm(p):
+                return torch.sqrt(torch.sum(torch.square(p), dim=(1, 2, 3), keepdim=True))
+            mask = l2norm(mask)
+        else:
+            raise NotImplementedError()
+        return mask
+
     def get_thresholds(self, name, mask):
+        if self.is_chainer():
+            return self._get_thresholds_chainer(name, mask)
+        else:
+            return self._get_thresholds_pytorch(name, mask)
+
+    def _get_thresholds_chainer(self, name, mask):
+        """
+
+        Args:
+            name:
+            mask (numpy.ndarray or cupy.ndarray):
+
+        Returns:
+
+        """
+        from chainer import backend
         xp = backend.get_array_module(mask)
 
         if self.threshold is not None:
@@ -81,3 +115,23 @@ class NormMask(Mask):
         else:
             raise ValueError()
 
+    def _get_thresholds_pytorch(self, name, mask):
+        """
+
+        Args:
+            name:
+            mask (torch.Tensor):
+
+        Returns:
+
+        """
+        if self.threshold is not None:
+            thresh = self.threshold[name]
+            return thresh
+        elif self.percent is not None:
+            # percent to threshold
+            thresh_index = int(self.percent[name] * mask.numel())
+            thresh = float(mask.flatten().sort()[0][thresh_index])
+            return thresh
+        else:
+            raise ValueError()

@@ -1,16 +1,14 @@
 # Copyright (c) 2018 DeNA Co., Ltd.
 # Licensed under The MIT License [see LICENSE for details]
 
-import chainer
-
 try:
+    import chainer
     from chainer_computational_cost import ComputationalCostHook
     enable_chainer_computational_cost = True
 except:
     enable_chainer_computational_cost = False
 
-from chainerpruner.rebuild.links.mapping import mapping
-
+import chainerpruner
 
 def calc_computational_cost(model: chainer.Chain, args, fma_1flop=True, custom_calculators=None):
     """calculation computational cost using chainer_computational_cost
@@ -25,6 +23,9 @@ def calc_computational_cost(model: chainer.Chain, args, fma_1flop=True, custom_c
     Returns:
 
     """
+    if not chainerpruner.utils.is_chainer_model(model):
+        raise NotImplementedError()
+    from chainerpruner.rebuild.chainer.mapping import mapping
 
     if not enable_chainer_computational_cost:
         raise ImportError()

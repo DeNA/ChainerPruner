@@ -4,9 +4,8 @@
 import logging
 import numpy as np
 
-from chainer import links as L
-
 from chainerpruner.rebuild import calc_pruning_connection
+from chainerpruner.utils import named_modules
 
 logger = logging.getLogger(__name__)
 
@@ -17,10 +16,11 @@ class Mask():
 
     def __init__(self, model, graph, target_layers, mask_layer=None):
         self.model = model
-        self._model_dict = {name: link for name, link in model.namedlinks()}
+        self._model_dict = {name: link for name, link in named_modules(model)}
         self.graph = graph
         self.target_layers = target_layers
         self.logger = logger
+        self._is_chainer = graph.is_chainer
         self.pruning_connection_info = calc_pruning_connection(graph)
         self.masks = dict()
         self._mask_layer = mask_layer
@@ -30,6 +30,9 @@ class Mask():
         cand_mask_layer = [None, 'batchnorm']
         if mask_layer not in cand_mask_layer:
             raise AttributeError('mask_layer is expected which {}'.format(cand_mask_layer))
+
+    def is_chainer(self):
+        return self._is_chainer
 
     def get_filter_norm(self, mask):
         """get mask for pruning
@@ -58,11 +61,44 @@ class Mask():
         raise NotImplementedError()
 
     def _get_mask(self, name):
+        """
+
+        Args:
+            name:
+
+        Returns:
+            (NDArray, ndarray): (conv-weight, mask-tensor)
+                conv-weight: (oc, ic, k, k) kernel order
+                mask-tensor: (oc, ic, k, k) or (oc, 1, 1, 1)
+
+        """
+        if self.is_chainer():
+            return self._get_mask_chainer(name)
+        else:
+            return self._get_mask_pytorch(name)
+
+    def _get_mask_pytorch(self, name):
+        from torch import nn
+        conv = self._model_dict[name]
+        if self._mask_layer is None:
+            mask = conv.weight.data.clone()
+        elif self._mask_layer == 'batchnorm':
+            # propagate mask bn: conv-bn
+            post_conv_bn_name = self.pruning_connection_info[name][0]
+            bn = self._model_dict[post_conv_bn_name]
+            if not isinstance(bn, nn.BatchNorm2d):
+                raise ValueError('expected {}(Conv) -> {}(BatchNorm)'.format(name, post_conv_bn_name))
+            mask = bn.weight.data.clone()
+            mask = mask.reshape(-1, 1, 1, 1) # to mask conv weight (oc, ic, kh, kw)
+        return conv.weight.data, mask
+
+    def _get_mask_chainer(self, name):
+        from chainer import links as L
         conv = self._model_dict[name]
         if self._mask_layer is None:
             mask = conv.W.array.copy()
         elif self._mask_layer == 'batchnorm':
-            # conv-bn
+            # propagate mask bn: conv-bn
             post_conv_bn_name = self.pruning_connection_info[name][0]
             bn = self._model_dict[post_conv_bn_name]
             if not isinstance(bn, L.BatchNormalization):
@@ -80,7 +116,8 @@ class Mask():
 
         # get mask vector
         target_weights = []
-        for name, link in self.model.namedlinks(skipself=True):
+        options = {'skipself': True} if self.is_chainer() else dict()
+        for name, link in named_modules(self.model, **options):
 
             self.logger.debug('name: %s', name)
 
@@ -93,6 +130,7 @@ class Mask():
             out_channels = mask.shape[0]
             mask = self.get_filter_norm(mask)
             if mask.shape != (out_channels, 1, 1, 1):
+                # expected (oc, ic, k, k) kernel order
                 raise RuntimeError()
 
             self.masks[name] = mask
@@ -109,7 +147,10 @@ class Mask():
 
             # apply mask
             mask = mask_ >= threshold  # 0: pruning, 1: non-pruning
-            mask = mask.astype(np.float32)
+            try:
+                mask = mask.astype(np.float32)
+            except AttributeError:
+                mask = mask.type_as(target_weight)
 
             info_ = {
                 'name': name,

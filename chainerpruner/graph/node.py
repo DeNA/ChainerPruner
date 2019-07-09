@@ -1,10 +1,6 @@
 # Copyright (c) 2018 DeNA Co., Ltd.
 # Licensed under The MIT License [see LICENSE for details]
 
-from collections import Sequence
-
-import chainer
-
 
 class Node():
     """計算グラフのノード。channel pruningに必要な情報を抽出している。
@@ -12,7 +8,7 @@ class Node():
     入出力のテンソルのサイズや、ノードの型、chainerのLinkやFuntionのオブジェクト自体もアクセスできる
     """
 
-    def __init__(self, id_, type_, args, out, link=None, function=None):
+    def __init__(self, id_, type_, args=None, out=None, link=None, function=None, module=None):
         """
 
         nextは、List[Node or List[Node]]
@@ -26,10 +22,10 @@ class Node():
             function:
         """
 
-        if not all([isinstance(a, chainer.variable.VariableNode) for a in args]):
-            raise TypeError()
-        if not all([isinstance(o, chainer.variable.VariableNode) for o in out]):
-            raise TypeError()
+        if not args:
+            args = []
+        if not out:
+            out = []
 
         self.name = id_
         self.id = id_
@@ -40,6 +36,7 @@ class Node():
         self.output_shape = [o.shape if hasattr(o, 'shape') else None for o in out]
         self.link = link
         self.function = function
+        # self.module = module
 
     def __repr__(self):
         if self.link:
