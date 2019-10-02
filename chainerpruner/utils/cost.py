@@ -10,7 +10,7 @@ except:
 
 import chainerpruner
 
-def calc_computational_cost(model: chainer.Chain, args, fma_1flop=True, custom_calculators=None):
+def calc_computational_cost(model, args, fma_1flop=True, custom_calculators=None):
     """calculation computational cost using chainer_computational_cost
 
     https://github.com/belltailjp/chainer_computational_cost
