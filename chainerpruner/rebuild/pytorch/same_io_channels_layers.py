@@ -8,6 +8,7 @@ _connected_io_channels_layers = [
     nn.BatchNorm2d,
     nn.ReLU6,
     nn.ReLU,
+    nn.Upsample,
     nn.MaxPool2d,
 ]
 

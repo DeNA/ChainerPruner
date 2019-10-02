@@ -6,6 +6,8 @@ from chainerpruner import Pruner, Graph
 from chainerpruner.masks import NormMask
 import torchvision.models as models
 import torch
+from torch import nn
+from torch.nn import functional as F
 
 enable_save = False
 
@@ -39,7 +41,6 @@ def _test_model(tmpdir, model_class, x, target_layers, percent, options=None, tr
     info = pruner.apply_rebuild()
 
     model(x)
-    # print(model)
 
     PATH = str(tmpdir.join('model.pth'))
     torch.save(model.state_dict(), PATH)
@@ -102,3 +103,66 @@ def test_no_target_layers():
         raise ValueError
     except ValueError:
         pass
+
+def test_block(tmpdir):
+
+    class Block(nn.Module):
+        def __init__(self, in_channels, out_channels, ksize, stride, pad):
+            super(Block, self).__init__()
+            self.convDW = nn.Conv2d(in_channels, in_channels, ksize, stride=stride, padding=pad, groups=in_channels, bias=False)
+            self.bnDW = nn.BatchNorm2d(in_channels)
+            self.convPW = nn.Conv2d(in_channels, out_channels, 1, stride=1, padding=0, bias=False)
+            self.bnPW = nn.BatchNorm2d(out_channels)
+
+        def forward(self, x):
+            inplace = True
+            # inplace = False TODO(tkat0) can't trace
+            h = F.relu(self.bnDW(self.convDW(x)), inplace=inplace)
+            h = F.relu(self.bnPW(self.convPW(h)), inplace=inplace)
+            return h
+
+    class SimpleNet(nn.Module):
+        def __init__(self):
+            super(SimpleNet, self).__init__()
+
+            self.conv1 = Block(3, 7, 3, 1, 0)
+            self.conv2 = Block(7, 15, 3, 1, 0)
+
+        def forward(self, x):
+            h = self.conv1(x)
+            h = self.conv2(h)
+            return h
+
+    model_class = SimpleNet
+    x = torch.randn((1, 3, 32, 32), requires_grad=False)
+    target_layers = ['conv1.convPW']
+    percent = 0.7
+
+    model_class()(x)
+
+    _test_model(tmpdir, model_class, x, target_layers, percent, options=None, save=enable_save)
+
+
+def test_upsample(tmpdir):
+
+    class SimpleNet(nn.Module):
+        def __init__(self):
+            super(SimpleNet, self).__init__()
+            self.conv1 = nn.Conv2d(3, 7, 1, stride=1, padding=0, bias=False)
+            self.up = nn.Upsample(scale_factor=2)
+            self.conv2 = nn.Conv2d(7, 15, 1, stride=1, padding=0, bias=False)
+
+        def forward(self, x):
+            h = self.conv1(x)
+            h = self.up(h)
+            h = self.conv2(h)
+            return h
+
+    model_class = SimpleNet
+    x = torch.randn((1, 3, 32, 32), requires_grad=False)
+    target_layers = ['conv1']
+    percent = 0.7
+
+    model_class()(x)
+
+    _test_model(tmpdir, model_class, x, target_layers, percent, options=None, save=enable_save)
