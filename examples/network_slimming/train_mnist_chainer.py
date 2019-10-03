@@ -20,7 +20,8 @@ import chainer.links as L
 from chainer import training
 from chainer.training import extensions
 
-from chainerpruner.pruning.network_slimming import Lasso, pruning
+from chainerpruner.pruning.network_slimming import pruning
+from chainerpruner.pruning.network_slimming.chainer import Lasso
 from chainerpruner.rebuild import reinitialize_model
 from chainerpruner.utils import calc_computational_cost
 
@@ -249,7 +250,7 @@ def main():
 
     cch_before = calc_computational_cost(model.predictor, x).total_report
 
-    info = pruning(model.predictor, x, target_layers=target_layers, threshold=args.pruning_threshold)
+    info = pruning(model.predictor, x, target_conv_layers=target_layers, threshold=args.pruning_threshold)
 
     cch_after = calc_computational_cost(model.predictor, x).total_report
 

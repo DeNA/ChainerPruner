@@ -29,7 +29,7 @@ class Mask():
 
         cand_mask_layer = [None, 'batchnorm']
         if mask_layer not in cand_mask_layer:
-            raise AttributeError('mask_layer is expected which {}'.format(cand_mask_layer))
+            raise AttributeError('mask_layer is Expected which {}'.format(cand_mask_layer))
 
     def is_chainer(self):
         return self._is_chainer
@@ -84,10 +84,13 @@ class Mask():
             mask = conv.weight.data.clone()
         elif self._mask_layer == 'batchnorm':
             # propagate mask bn: conv-bn
-            post_conv_bn_name = self.pruning_connection_info[name][0]
+            post_conv_bn_name = self.pruning_connection_info[name][0] # get next node of conv
             bn = self._model_dict[post_conv_bn_name]
             if not isinstance(bn, nn.BatchNorm2d):
-                raise ValueError('expected {}(Conv) -> {}(BatchNorm)'.format(name, post_conv_bn_name))
+                raise ValueError('Expected: Conv -> BatchNorm, '
+                                 'Actual: Conv({}) -> {}({})\n'
+                                 'connections: {}'.format(name, type(bn), post_conv_bn_name,
+                                                          self.pruning_connection_info[name]))
             mask = bn.weight.data.clone()
             mask = mask.reshape(-1, 1, 1, 1) # to mask conv weight (oc, ic, kh, kw)
         return conv.weight.data, mask
@@ -102,7 +105,10 @@ class Mask():
             post_conv_bn_name = self.pruning_connection_info[name][0]
             bn = self._model_dict[post_conv_bn_name]
             if not isinstance(bn, L.BatchNormalization):
-                raise ValueError('expected {}(Conv) -> {}(BatchNorm)'.format(name, post_conv_bn_name))
+                raise ValueError('Expected: Conv -> BatchNorm, '
+                                 'Actual: Conv({}) -> {}({})\n'
+                                 'connections: {}'.format(name, type(bn), post_conv_bn_name,
+                                                          self.pruning_connection_info[name]))
             mask = bn.gamma.array.copy()
             mask = mask.reshape(-1, 1, 1, 1) # to mask conv weight (oc, ic, kh, kw)
         return conv.W.array, mask
@@ -130,7 +136,7 @@ class Mask():
             out_channels = mask.shape[0]
             mask = self.get_filter_norm(mask)
             if mask.shape != (out_channels, 1, 1, 1):
-                # expected (oc, ic, k, k) kernel order
+                # Expected (oc, ic, k, k) kernel order
                 raise RuntimeError()
 
             self.masks[name] = mask

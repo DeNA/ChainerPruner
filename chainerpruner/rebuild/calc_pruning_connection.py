@@ -46,6 +46,15 @@ def calc_pruning_connection(graph: Graph) -> Mapping:
 
         stack = deque([])
         stack.extend(graph.graph.successors(node))
+        # Chainer: conv1(node) -> bn1 -> conv2 -> ...
+        # stack[BatchNormalization(link), FixedBatchnormalization(function)] !!! link and function
+        # stack[BatchNormalization(link), FixedBatchnormalization(function), Convolution2D]
+        # => affected_nodes[conv2]
+        # stack[BatchNormalization(link), FixedBatchnormalization(function)]
+        # stack[BatchNormalization(link)]
+        # => affected_nodes[conv2, bn1]
+        # ==reverse==
+        # => affected_nodes[bn1, conv2]
         while len(stack) > 0:
             next_node = stack.pop()
             if next_node.link and next_node.name not in visited:
@@ -56,7 +65,8 @@ def calc_pruning_connection(graph: Graph) -> Mapping:
             stack.extend(graph.graph.successors(next_node))
 
         if affected_nodes:
-            affected_nodes.reverse()
+            if graph.is_chainer:
+                affected_nodes.reverse()
             pruning_connection_info[node.name] = affected_nodes
 
     # この時点ではResBlockやConv2DBNActivのようなUserDefinedLinkも含まれる

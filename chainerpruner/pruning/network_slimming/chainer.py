@@ -1,8 +1,6 @@
 # Copyright (c) 2018 DeNA Co., Ltd.
 # Licensed under The MIT License [see LICENSE for details]
 
-from chainer import cuda
-
 import logging
 
 # https://github.com/chainer/chainer/blob/v5.1.0/chainer/optimizer_hooks/lasso.py
