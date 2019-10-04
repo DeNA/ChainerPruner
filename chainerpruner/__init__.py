@@ -15,6 +15,10 @@ except ImportError:
 try:
     import torch
 
+    if torch.__version__ != '1.1.0':
+        print("Warning: ChainerPruner has been tested with PyTorch 1.1.0. "
+              "PyTorch {} may not work properly.".format(torch.__version__))
+
     avalable_pytorch = True
 except ImportError:
     avalable_pytorch = False
