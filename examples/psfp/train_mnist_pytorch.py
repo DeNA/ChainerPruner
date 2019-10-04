@@ -136,8 +136,9 @@ def main():
     optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum)
 
     # initialize pruning extension
+    # TODO(tkat0) cant pruning net.3 (conv-fc)
     target_layers = ['net.0']
-    x = torch.randn((1, 1, 28, 28), requires_grad=False)
+    x = torch.randn((1, 1, 28, 28), requires_grad=False).to(device)
     psfp = ProgressiveSoftFilterPruning(model, x, target_layers, pruning_rate=args.pruning_percent,
                                         stop_trigger=args.epochs)
 
@@ -145,12 +146,17 @@ def main():
         train(args, model, device, train_loader, optimizer, epoch, psfp)
         test(args, model, device, test_loader)
 
+    model = model.to('cpu')
+
     if (args.save_model):
         torch.onnx.export(model, x, "mnist_cnn.onnx", verbose=False,
                           input_names=['input'],
                           output_names=['output'])
 
     psfp.rebuild()
+    print(model)
+
+    model.to(device)(x)  # testing
 
     if (args.save_model):
         torch.onnx.export(model, x, "mnist_cnn_rebuild.onnx", verbose=False,

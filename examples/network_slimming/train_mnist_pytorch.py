@@ -143,15 +143,18 @@ def main():
     optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum)
 
     # initialize pruning extension
+    # TODO(tkat0) cant pruning net.4 (conv-fc)
     target_conv_layers = ['net.0']
     target_batchnorm_layers = ['net.1']
 
-    x = torch.randn((1, 1, 28, 28), requires_grad=False)
+    x = torch.randn((1, 1, 28, 28), requires_grad=False).to(device)
     lasso = Lasso(model, args.rate, target_batchnorm_layers)
 
     for epoch in range(1, args.epochs + 1):
         train(args, model, device, train_loader, optimizer, epoch, lasso)
         test(args, model, device, test_loader)
+
+    model.to('cpu')
 
     if (args.save_model):
         torch.onnx.export(model, x, "mnist_cnn.onnx", verbose=False,
@@ -161,6 +164,8 @@ def main():
     # rebiuld model
     info = network_slimming.pruning(model, x, target_conv_layers, args.pruning_threshold)
     print(info)
+
+    model.to(device)(x)  # testing
 
     if (args.save_model):
         torch.onnx.export(model, x, "mnist_cnn_rebuild.onnx", verbose=False,

@@ -28,5 +28,5 @@ class ProgressiveSoftFilterPruningExtension(extension.Extension):
         self.core(step)
 
     def finalize(self):
-        if self._rebuild
+        if self._rebuild:
             self.core.rebuild()

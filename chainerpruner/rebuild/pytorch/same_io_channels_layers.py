@@ -3,18 +3,18 @@
 
 import torch.nn as nn
 
-# TODO(tkat0) aggregate functions
-_connected_io_channels_layers = [
-    nn.BatchNorm2d,
-    nn.ReLU6,
-    nn.ReLU,
-    nn.Upsample,
-    nn.MaxPool2d,
+
+_disconnected_io_channels_layers = [
+    nn.Conv1d,
+    nn.Conv2d,
+    nn.Linear,
+    nn.ConvTranspose1d,
+    nn.ConvTranspose2d,
 ]
 
 
 def is_connected_io_channels(node):
-    """入出力のチャネル数が連動している層の場合Trueを返す
+    """Return True if the number of input and output channels of node is linked
 
     Args:
         node:
@@ -25,7 +25,7 @@ def is_connected_io_channels(node):
     if node.type == nn.Conv2d and node.link.groups > 1:
         # Depthwise Convolution
         return True
-    elif node.type in _connected_io_channels_layers:
-        return True
-    else:
+    elif node.type in _disconnected_io_channels_layers:
         return False
+    else:
+        return True  # default
