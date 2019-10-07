@@ -61,7 +61,7 @@ class NormMask(Mask):
 
         if self.norm == 'l1':
             def l1norm(p):
-                return xp.sum(p, axis=(1, 2, 3), keepdims=True)
+                return xp.sum(xp.abs(p), axis=(1, 2, 3), keepdims=True)
             mask = l1norm(mask)
         elif self.norm == 'l2':
             def l2norm(p):
@@ -75,7 +75,7 @@ class NormMask(Mask):
         import torch
         if self.norm == 'l1':
             def l1norm(p):
-                return torch.sum(p, dim=(1, 2, 3), keepdim=True)
+                return torch.sum(torch.abs(p), dim=(1, 2, 3), keepdim=True)
             mask = l1norm(mask)
         elif self.norm == 'l2':
             def l2norm(p):
